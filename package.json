@@ -4,7 +4,7 @@
   "description": "generate code doc with ai",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.100.0"
+    "vscode": "^1.99.3"
   },
   "categories": [
     "Other"
@@ -16,8 +16,46 @@
       {
         "command": "ai-doc-generator.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "ai-doc-generator.generateSpecifications",
+        "title": "Generate Doc"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "AI Doc Generator",
+      "properties": {
+        "ai-doc-generator.targetExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "doc生成対象ファイルの拡張子（例: ts, js）",
+          "default": [
+            "ts",
+            "js"
+          ],
+          "scope": "machine-overridable"
+        },
+        "ai-doc-generator.inputDirs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "仕様書生成対象フォルダ（例: src, lib）",
+          "default": [
+            "src"
+          ],
+          "scope": "machine-overridable"
+        },
+        "ai-doc-generator.outputDir": {
+          "type": "string",
+          "description": "仕様書出力対象フォルダ（例: docs）",
+          "default": "docs",
+          "scope": "machine-overridable"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",
