@@ -3,7 +3,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { getAllFilesWithExtensions, parseConfigs } from "./utils";
+import { getAllFilesWithExtensions, getNonce, parseConfigs } from "./utils";
 import { EXTENSION_NAME } from "./constants";
 
 // TODO: 多言語対応
@@ -46,28 +46,29 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
 
   constructor(private readonly context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration(`${EXTENSION_NAME}.prompt`)) {
-        this.refresh();
-      }
+      // if (e.affectsConfiguration(`${EXTENSION_NAME}.prompt`)) {
+      //   this.refresh();
+      // }
     });
   }
 
-  private refresh() {
-    if (this._view) {
-      this._view.webview.html = this._getHtmlContent();
-    }
-  }
+  // private refresh() {
+  //   if (this._view) {
+  //     this._view.webview.html = this._getHtmlContent(webviewView.webview);
+  //   }
+  // }
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
-    console.log("webviewView resolved", webviewView);
     this._view = webviewView;
 
-    // Set the HTML content for the Webview
     webviewView.webview.options = {
+      // Allow scripts in the webview
       enableScripts: true,
+
+      localResourceRoots: [this.context.extensionUri],
     };
 
-    webviewView.webview.html = this._getHtmlContent();
+    webviewView.webview.html = this._getHtmlContent(webviewView.webview);
 
     // Handle messages from the Webview
     webviewView.webview.onDidReceiveMessage((message) => {
@@ -79,9 +80,16 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
     });
   }
 
-  private _getHtmlContent(): string {
+  private _getHtmlContent(webview: vscode.Webview): string {
     const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
     const prompt = config.get<string>("prompt", "");
+    const scriptUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.context.extensionUri, "media", "main.js")
+    );
+
+    // Use a nonce to only allow a specific script to be run.
+    const nonce = getNonce();
+
     return `
       <!DOCTYPE html>
       <html lang="en">
@@ -94,14 +102,7 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
         <h3>Edit Default Prompt</h3>
         <textarea id="prompt" style="width: 100%; height: 200px;">${prompt}</textarea>
         <button id="saveButton">Save</button>
-        <script>
-          console.log("Webview loaded");
-          const vscode = acquireVsCodeApi();
-          document.getElementById('saveButton').addEventListener('click', () => {
-            const text = document.getElementById('prompt').value;
-            vscode.postMessage({ command: 'savePrompt', text });
-          });
-        </script>
+				<script nonce="${nonce}" src="${scriptUri}"></script>
       </body>
       </html>
     `;
