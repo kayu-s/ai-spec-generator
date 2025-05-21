@@ -3,80 +3,115 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { parseConfigs } from "./utils";
+import { getAllFilesWithExtensions, parseConfigs } from "./utils";
+import { EXTENSION_NAME } from "./constants";
 
 // TODO: 多言語対応
 // https://code.visualstudio.com/api/references/vscode-api#l10n
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+// TODO: 生成対象がなかった時のメッセージ
+
 export function activate(context: vscode.ExtensionContext) {
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
   console.log(
-    'Congratulations, your extension "ai-doc-generator" is now active!'
+    `Congratulations, your extension ${EXTENSION_NAME} is now active!`
   );
 
-  // The command has been defined in the package.json file
-  // Now provide the implementation of the command with registerCommand
-  // The commandId parameter must match the command field in package.json
-  const disposable = vscode.commands.registerCommand(
-    "ai-doc-generator.helloWorld",
-    () => {
-      // The code you place here will be executed every time your command is executed
-      // Display a message box to the user
-      vscode.window.showInformationMessage(
-        "Hello World from ai-doc-generator!"
-      );
-    }
-  );
   // 「extension.generateSpecifications」コマンドを登録
   const generateCommand = vscode.commands.registerCommand(
-    "ai-doc-generator.generateSpecifications",
+    `${EXTENSION_NAME}.generateSpecifications`,
     async () => {
       await generateSpecifications();
     }
   );
+  const provider = new PromptViewProvider(context);
 
-  context.subscriptions.push(disposable, generateCommand);
+  const promptEditView = vscode.window.registerWebviewViewProvider(
+    PromptViewProvider.viewType,
+    provider
+  );
+
+  const commands = [generateCommand];
+  const views = [promptEditView];
+
+  context.subscriptions.push(...commands, ...views);
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
 
-/**
- * Copilotモデルにプロンプトを送信し、結果を受け取る
- */
-/**
- * Recursively get all files with specified extensions in a directory
- */
-function getAllFilesWithExtensions(
-  srcDir: string,
-  extensions: string[]
-): string[] {
-  let results: string[] = [];
+class PromptViewProvider implements vscode.WebviewViewProvider {
+  public static readonly viewType = `${EXTENSION_NAME}.promptView`;
 
-  if (!fs.existsSync(srcDir)) {
-    console.error(`指定されたディレクトリが存在しません: ${srcDir}`);
-    return results;
+  private _view?: vscode.WebviewView;
+
+  constructor(private readonly context: vscode.ExtensionContext) {
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration(`${EXTENSION_NAME}.prompt`)) {
+        this.refresh();
+      }
+    });
   }
 
-  const list = fs.readdirSync(srcDir);
-
-  for (const file of list) {
-    const filePath = path.join(srcDir, file);
-    const stat = fs.statSync(filePath);
-
-    if (stat && stat.isDirectory()) {
-      // Recurse into subdirectory
-      results = results.concat(getAllFilesWithExtensions(filePath, extensions));
-    } else if (extensions.some((ext) => file.endsWith(ext))) {
-      // Add file to results if it matches one of the specified extensions
-      results.push(filePath);
+  private refresh() {
+    if (this._view) {
+      this._view.webview.html = this._getHtmlContent();
     }
   }
 
-  return results;
+  public resolveWebviewView(webviewView: vscode.WebviewView) {
+    console.log("webviewView resolved", webviewView);
+    this._view = webviewView;
+
+    // Set the HTML content for the Webview
+    webviewView.webview.options = {
+      enableScripts: true,
+    };
+
+    webviewView.webview.html = this._getHtmlContent();
+
+    // Handle messages from the Webview
+    webviewView.webview.onDidReceiveMessage((message) => {
+      switch (message.command) {
+        case "savePrompt":
+          this.savePrompt(message.text);
+          break;
+      }
+    });
+  }
+
+  private _getHtmlContent(): string {
+    const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
+    const prompt = config.get<string>("prompt", "");
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Edit Default Prompt</title>
+      </head>
+      <body>
+        <h3>Edit Default Prompt</h3>
+        <textarea id="prompt" style="width: 100%; height: 200px;">${prompt}</textarea>
+        <button id="saveButton">Save</button>
+        <script>
+          console.log("Webview loaded");
+          const vscode = acquireVsCodeApi();
+          document.getElementById('saveButton').addEventListener('click', () => {
+            const text = document.getElementById('prompt').value;
+            vscode.postMessage({ command: 'savePrompt', text });
+          });
+        </script>
+      </body>
+      </html>
+    `;
+  }
+
+  private savePrompt(newPrompt: string) {
+    const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
+    config.update("prompt", newPrompt, vscode.ConfigurationTarget.Global);
+    vscode.window.showInformationMessage("Prompt updated!");
+  }
 }
 
 async function generateSpecifications() {
@@ -98,55 +133,57 @@ async function generateSpecifications() {
     const workspaceFolder =
       vscode.workspace.workspaceFolders?.[0].uri.fsPath || "";
 
-    const srcDir = path.join(workspaceFolder, "src");
-
     const initialMessage = vscode.LanguageModelChatMessage.User(initialPrompt);
 
-    const files = getAllFilesWithExtensions(srcDir, targetExtensions);
+    for (const inputDir of inputDirs) {
+      const srcDir = path.join(workspaceFolder, inputDir);
 
-    for (const file of files) {
-      // TODO: vscode.workspace.fs 使った方が良い？
-      // https://code.visualstudio.com/api/references/vscode-api#workspace
-      const fileContent = fs.readFileSync(file, "utf8");
+      // Get all files with the specified extensions in the current input directory
+      const files = getAllFilesWithExtensions(srcDir, targetExtensions);
 
-      // Create a prompt specific to the current file
-      const fileMessage = vscode.LanguageModelChatMessage.User(fileContent);
+      for (const file of files) {
+        // Read the file content
+        const fileContent = fs.readFileSync(file, "utf8");
 
-      // Send the prompt for the current file
-      const response = await model.sendRequest(
-        [initialMessage, fileMessage],
-        {}
-      );
+        // Create a prompt specific to the current file
+        const fileMessage = vscode.LanguageModelChatMessage.User(fileContent);
 
-      const relativePath = path.relative(workspaceFolder, file);
-      const docsFolderPath = path.join(
-        workspaceFolder,
-        outputDir,
-        path.dirname(relativePath)
-      );
+        // Send the prompt for the current file
+        const response = await model.sendRequest(
+          [initialMessage, fileMessage],
+          {}
+        );
 
-      // Ensure the docs folder exists
-      if (!fs.existsSync(docsFolderPath)) {
-        fs.mkdirSync(docsFolderPath, { recursive: true });
-      }
+        const relativePath = path.relative(workspaceFolder, file);
+        const docsFolderPath = path.join(
+          workspaceFolder,
+          outputDir,
+          path.dirname(relativePath)
+        );
 
-      const filePath = path.join(
-        docsFolderPath,
-        `${path.basename(file, path.extname(file))}.md`
-      );
-
-      try {
-        // Write the response to a new file
-        for await (const fragment of response.text) {
-          fs.appendFileSync(filePath, fragment, "utf8");
+        // Ensure the docs folder exists
+        if (!fs.existsSync(docsFolderPath)) {
+          fs.mkdirSync(docsFolderPath, { recursive: true });
         }
-        vscode.window.showInformationMessage(
-          `仕様書が ${filePath} に出力されました。`
+
+        const filePath = path.join(
+          docsFolderPath,
+          `${path.basename(file, path.extname(file))}.md`
         );
-      } catch (err) {
-        vscode.window.showErrorMessage(
-          `ファイルの書き込みに失敗しました: ${String(err)}`
-        );
+
+        try {
+          // Write the response to a new file
+          for await (const fragment of response.text) {
+            fs.appendFileSync(filePath, fragment, "utf8");
+          }
+          vscode.window.showInformationMessage(
+            `仕様書が ${filePath} に出力されました。`
+          );
+        } catch (err) {
+          vscode.window.showErrorMessage(
+            `ファイルの書き込みに失敗しました: ${String(err)}`
+          );
+        }
       }
     }
   } catch (err) {

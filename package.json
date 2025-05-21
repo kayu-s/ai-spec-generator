@@ -14,14 +14,28 @@
   "contributes": {
     "commands": [
       {
-        "command": "ai-doc-generator.helloWorld",
-        "title": "Hello World"
-      },
-      {
         "command": "ai-doc-generator.generateSpecifications",
-        "title": "Generate Doc"
+        "title": "Generate specifications"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "aiDocGenerator",
+          "title": "AI Doc Generator",
+          "icon": "resources/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "aiDocGenerator": [
+        {
+          "type": "webview",
+          "id": "ai-doc-generator.promptView",
+          "name": "Edit Default Prompt"
+        }
+      ]
+    },
     "configuration": {
       "title": "AI Doc Generator",
       "properties": {
@@ -52,6 +66,12 @@
           "type": "string",
           "description": "仕様書出力対象フォルダ（例: docs）",
           "default": "docs",
+          "scope": "machine-overridable"
+        },
+        "ai-doc-generator.prompt": {
+          "type": "string",
+          "description": "仕様書生成時に使用するデフォルトのプロンプト",
+          "default": "Project内にある全コードに対し、仕様書を作成してください。\n・仕様書はdocsフォルダに格納する。\n・仕様書は日本語で記載する。\n・仕様書は、各関数の説明と、関数の引数、戻り値を記載する。\n・関数の説明は、関数の役割を簡潔に説明する。\n・markdown形式で記載する。\n・処理フローをmermaid形式で記載する。",
           "scope": "machine-overridable"
         }
       }
