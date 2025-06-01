@@ -127,7 +127,7 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
           </div>
         </div>
         <div id="execute generate doc">
-          <button id="executeButton" class="flex gap-2 place-items-center place-content-center w-full m-auto text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none"><span class="material-symbols-outlined">
+          <button id="executeButton" class="!text-lg flex gap-2 place-items-center place-content-center w-full m-auto text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none"><span class="material-symbols-outlined">
 smart_toy
 </span>generate specifications</button>
         </div>
