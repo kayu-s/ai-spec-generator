@@ -1,6 +1,6 @@
 {
-  "name": "ai-doc-generator",
-  "displayName": "ai-doc-generator",
+  "name": "ai-spec-generator",
+  "displayName": "ai-spec-generator",
   "description": "generate code doc with ai",
   "version": "0.0.1",
   "engines": {
@@ -14,64 +14,64 @@
   "contributes": {
     "commands": [
       {
-        "command": "ai-doc-generator.generateSpecifications",
+        "command": "ai-spec-generator.generateSpecifications",
         "title": "Generate specifications"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "aiDocGenerator",
-          "title": "AI Doc Generator",
+          "id": "aiSpecGenerator",
+          "title": "AI Spec Generator",
           "icon": "resources/icon.png"
         }
       ]
     },
     "views": {
-      "aiDocGenerator": [
+      "aiSpecGenerator": [
         {
           "type": "webview",
-          "id": "ai-doc-generator.promptView",
+          "id": "ai-spec-generator.promptView",
           "name": "Edit Default Prompt"
         }
       ]
     },
     "configuration": {
-      "title": "AI Doc Generator",
+      "title": "AI Spec Generator",
       "properties": {
-        "ai-doc-generator.targetExtensions": {
+        "ai-spec-generator.targetExtensions": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "doc生成対象ファイルの拡張子（例: ts, js）",
+          "description": "%targetExtensions-description%",
           "default": [
             "ts",
             "js"
           ],
           "scope": "machine-overridable"
         },
-        "ai-doc-generator.inputDirs": {
+        "ai-spec-generator.inputDirs": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "仕様書生成対象フォルダ（例: src, lib）",
+          "description": "%inputDirs-description%",
           "default": [
             "src"
           ],
           "scope": "machine-overridable"
         },
-        "ai-doc-generator.outputDir": {
+        "ai-spec-generator.outputDir": {
           "type": "string",
-          "description": "仕様書出力対象フォルダ（例: docs）",
+          "description": "%outputDir-description%",
           "default": "docs",
           "scope": "machine-overridable"
         },
-        "ai-doc-generator.prompt": {
+        "ai-spec-generator.prompt": {
           "type": "string",
-          "description": "仕様書生成時に使用するデフォルトのプロンプト",
-          "default": "Project内にある全コードに対し、仕様書を作成してください。\n・仕様書はdocsフォルダに格納する。\n・仕様書は日本語で記載する。\n・仕様書は、各関数の説明と、関数の引数、戻り値を記載する。\n・関数の説明は、関数の役割を簡潔に説明する。\n・markdown形式で記載する。\n・処理フローをmermaid形式で記載する。",
+          "description": "%prompt-description%",
+          "default": "%prompt-default%",
           "scope": "machine-overridable"
         }
       }

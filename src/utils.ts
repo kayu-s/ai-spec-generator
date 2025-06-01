@@ -1,25 +1,25 @@
 import * as vscode from "vscode";
-import { DEFAULT_PROMPT, EXTENSION_NAME } from "./constants";
+import { EXTENSION_NAME } from "./constants";
 import * as fs from "fs";
 import * as path from "path";
 
 export const parseConfigs = () => {
   const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
-  const initialPrompt = config.get<string>("prompt") || DEFAULT_PROMPT;
+  const initialPrompt = config.get<string>("prompt");
 
   const targetExtensions = validateAndGet(
     config.get<string[]>("targetExtensions"),
-    "対象の拡張子を設定してください"
+    "Please make sure your target extension setting"
   );
 
   const inputDirs = validateAndGet(
     config.get<string[]>("inputDirs"),
-    "入力対象フォルダを設定してください"
+    "Please make sure your target folders setting"
   );
 
   const outputDir = validateAndGet(
     config.get<string>("outputDir"),
-    "出力対象フォルダを設定してください"
+    "Please make sure your output folder setting"
   );
 
   return { initialPrompt, targetExtensions, inputDirs, outputDir };
@@ -43,7 +43,7 @@ export const getAllFilesWithExtensions = (
   let results: string[] = [];
 
   if (!fs.existsSync(srcDir)) {
-    console.error(`指定されたディレクトリが存在しません: ${srcDir}`);
+    console.error(`Folder you specified does not exist: ${srcDir}`);
     return results;
   }
 

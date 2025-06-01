@@ -1,0 +1,7 @@
+{
+  "targetExtensions-description": "File extensions list you want to generate specifications(e.g., ts, js)",
+  "inputDirs-description": "Folder list you want to generate specifications(e.g., src, lib)",
+  "outputDir-description": "Folder you want to output generated specifications(e.g., doc)",
+  "prompt-description": "Default prompt to generate specifications",
+  "prompt-default": "Please generate documentation for all code within the project.\nFor each function, include the following: a brief description of the function’s purpose, descriptions of the function’s arguments and return values.\nUse Markdown format.\nDescribe the processing flow using Mermaid syntax."
+}

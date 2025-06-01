@@ -1,0 +1,7 @@
+{
+  "targetExtensions-description": "仕様書生成対象ファイルの拡張子（例: ts, js）",
+  "inputDirs-description": "仕様書生成対象フォルダ（例: src, lib）",
+  "outputDir-description": "仕様書出力対象フォルダ（例: docs）",
+  "prompt-description": "仕様書生成時に使用するデフォルトのプロンプト",
+  "prompt-default": "Project内にある全コードに対し、仕様書を作成してください。\n・仕様書は、各関数の説明と、関数の引数、戻り値を記載する。\n・関数の説明は、関数の役割を簡潔に説明する。\n・markdown形式で記載する。\n・処理フローをmermaid形式で記載する。"
+}

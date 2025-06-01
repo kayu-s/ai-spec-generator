@@ -44,13 +44,7 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
 
   private _view?: vscode.WebviewView;
 
-  constructor(private readonly context: vscode.ExtensionContext) {
-    vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration(`${EXTENSION_NAME}.prompt`)) {
-        this.refresh();
-      }
-    });
-  }
+  constructor(private readonly context: vscode.ExtensionContext) {}
 
   private refresh() {
     if (this._view) {
@@ -77,6 +71,9 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
           break;
         case "resetPrompt":
           this.resetPrompt();
+          break;
+        case "generateExecute":
+          generateSpecifications();
           break;
       }
     });
@@ -110,19 +107,30 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Edit Default Prompt</title>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=save" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=refresh,save,smart_toy" />
         <link href="${styleResetUri}" rel="stylesheet">
 				<link href="${styleVSCodeUri}" rel="stylesheet">
 				<link href="${styleMainUri}" rel="stylesheet">
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
       <body>
-        <h3 class="mt-2">Edit Default Prompt</h3>
-        <textarea id="prompt" class="my-2 card w-full h-48 rounded-md">${prompt}</textarea>
-        <button id="resetButton" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Reset</button>
-        <button id="saveButton" class="float-right mr-0 w-auto flex gap-2 place-items-center text-white bg-gray-600 hover:bg-gray-700 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2"><span class="material-symbols-outlined">
-save
-</span>Save</button>
+        <div id="edit-prompt" class="mb-4">
+          <h3 class="mt-2">Edit Default Prompt</h3>
+          <textarea id="prompt" class="my-2 card w-full h-48 rounded-md">${prompt}</textarea>
+          <div class="flex gap-2 justify-end [&_button]:flex [&_button]:gap-2 [&_button]:place-items-center">
+            <button id="resetButton" class="w-auto text-white bg-gray-600 hover:bg-gray-700 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2"><span class="material-symbols-outlined">
+  refresh
+  </span>Reset</button>
+            <button id="saveButton" class="w-auto text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none"><span class="material-symbols-outlined">
+    save
+    </span>Save</button>
+          </div>
+        </div>
+        <div id="execute generate doc">
+          <button id="executeButton" class="flex gap-2 place-items-center place-content-center w-full m-auto text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none"><span class="material-symbols-outlined">
+smart_toy
+</span>generate specifications</button>
+        </div>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
       </body>
       </html>
@@ -133,10 +141,16 @@ save
     const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
     config.update("prompt", newPrompt, vscode.ConfigurationTarget.Global);
     vscode.window.showInformationMessage("Prompt updated!");
+    this.refresh();
   }
   private resetPrompt() {
     const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
-    config.update("prompt", DEFAULT_PROMPT, vscode.ConfigurationTarget.Global);
+    const langKey = vscode.env.language;
+    const prompt =
+      langKey === "ja" ? DEFAULT_PROMPT[langKey] : DEFAULT_PROMPT["en"];
+    config.update("prompt", prompt, vscode.ConfigurationTarget.Global);
+    vscode.window.showInformationMessage("Prompt has been reset!");
+    this.refresh();
   }
 }
 
@@ -147,7 +161,7 @@ async function generateSpecifications() {
   });
 
   if (!model) {
-    vscode.window.showErrorMessage("Copilotモデルが見つかりませんでした。");
+    vscode.window.showErrorMessage("Copilot model not found");
     return;
   }
 
@@ -156,6 +170,10 @@ async function generateSpecifications() {
     const { initialPrompt, targetExtensions, inputDirs, outputDir } =
       parseConfigs();
 
+    if (!initialPrompt) {
+      vscode.window.showErrorMessage("Please make sure your prompt");
+      return;
+    }
     const workspaceFolder =
       vscode.workspace.workspaceFolders?.[0].uri.fsPath || "";
 
@@ -203,18 +221,16 @@ async function generateSpecifications() {
             fs.appendFileSync(filePath, fragment, "utf8");
           }
           vscode.window.showInformationMessage(
-            `仕様書が ${filePath} に出力されました。`
+            `specification ${filePath} generated`
           );
         } catch (err) {
-          vscode.window.showErrorMessage(
-            `ファイルの書き込みに失敗しました: ${String(err)}`
-          );
+          vscode.window.showErrorMessage(`File write failed: ${String(err)}`);
         }
       }
     }
   } catch (err) {
     vscode.window.showErrorMessage(
-      "仕様書の生成に失敗しました: " + String(err)
+      "Generate specification failed: " + String(err)
     );
   }
 }

@@ -7,7 +7,8 @@
   const vscode = acquireVsCodeApi();
   const saveButton = document.getElementById("saveButton");
   const resetButton = document.getElementById("resetButton");
-  if (!saveButton || !resetButton) {
+  const executeButton = document.getElementById("executeButton");
+  if (!saveButton || !resetButton || !executeButton) {
     return;
   }
   saveButton.addEventListener("click", () => {
@@ -19,5 +20,10 @@
   resetButton.addEventListener("click", () => {
     // @ts-ignore
     vscode.postMessage({ command: "resetPrompt" });
+  });
+
+  executeButton.addEventListener("click", () => {
+    // @ts-ignore
+    vscode.postMessage({ command: "generateExecute" });
   });
 })();
