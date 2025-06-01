@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import { getAllFilesWithExtensions, getNonce, parseConfigs } from "./utils";
-import { EXTENSION_NAME } from "./constants";
+import { DEFAULT_PROMPT, EXTENSION_NAME } from "./constants";
 
 // TODO: 多言語対応
 // https://code.visualstudio.com/api/references/vscode-api#l10n
@@ -46,17 +46,17 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
 
   constructor(private readonly context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration((e) => {
-      // if (e.affectsConfiguration(`${EXTENSION_NAME}.prompt`)) {
-      //   this.refresh();
-      // }
+      if (e.affectsConfiguration(`${EXTENSION_NAME}.prompt`)) {
+        this.refresh();
+      }
     });
   }
 
-  // private refresh() {
-  //   if (this._view) {
-  //     this._view.webview.html = this._getHtmlContent(webviewView.webview);
-  //   }
-  // }
+  private refresh() {
+    if (this._view) {
+      this._view.webview.html = this._getHtmlContent(this._view.webview);
+    }
+  }
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
@@ -64,7 +64,6 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.options = {
       // Allow scripts in the webview
       enableScripts: true,
-
       localResourceRoots: [this.context.extensionUri],
     };
 
@@ -75,6 +74,9 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
       switch (message.command) {
         case "savePrompt":
           this.savePrompt(message.text);
+          break;
+        case "resetPrompt":
+          this.resetPrompt();
           break;
       }
     });
@@ -87,6 +89,17 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
       vscode.Uri.joinPath(this.context.extensionUri, "media", "main.js")
     );
 
+    const styleResetUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.context.extensionUri, "media", "reset.css")
+    );
+    const styleVSCodeUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.context.extensionUri, "media", "vscode.css")
+    );
+
+    const styleMainUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.context.extensionUri, "media", "main.css")
+    );
+
     // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();
 
@@ -97,11 +110,19 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Edit Default Prompt</title>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=save" />
+        <link href="${styleResetUri}" rel="stylesheet">
+				<link href="${styleVSCodeUri}" rel="stylesheet">
+				<link href="${styleMainUri}" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
       </head>
       <body>
-        <h3>Edit Default Prompt</h3>
-        <textarea id="prompt" style="width: 100%; height: 200px;">${prompt}</textarea>
-        <button id="saveButton">Save</button>
+        <h3 class="mt-2">Edit Default Prompt</h3>
+        <textarea id="prompt" class="my-2 card w-full h-48 rounded-md">${prompt}</textarea>
+        <button id="resetButton" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Reset</button>
+        <button id="saveButton" class="float-right mr-0 w-auto flex gap-2 place-items-center text-white bg-gray-600 hover:bg-gray-700 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2"><span class="material-symbols-outlined">
+save
+</span>Save</button>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
       </body>
       </html>
@@ -112,6 +133,10 @@ class PromptViewProvider implements vscode.WebviewViewProvider {
     const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
     config.update("prompt", newPrompt, vscode.ConfigurationTarget.Global);
     vscode.window.showInformationMessage("Prompt updated!");
+  }
+  private resetPrompt() {
+    const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
+    config.update("prompt", DEFAULT_PROMPT, vscode.ConfigurationTarget.Global);
   }
 }
 

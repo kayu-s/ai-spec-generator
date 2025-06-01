@@ -6,10 +6,18 @@
   // @ts-ignore
   const vscode = acquireVsCodeApi();
   const saveButton = document.getElementById("saveButton");
-  if (!saveButton) return;
+  const resetButton = document.getElementById("resetButton");
+  if (!saveButton || !resetButton) {
+    return;
+  }
   saveButton.addEventListener("click", () => {
     // @ts-ignore
     const promptInput = document.getElementById("prompt")?.value;
     vscode.postMessage({ command: "savePrompt", text: promptInput });
+  });
+
+  resetButton.addEventListener("click", () => {
+    // @ts-ignore
+    vscode.postMessage({ command: "resetPrompt" });
   });
 })();
