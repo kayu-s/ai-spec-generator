@@ -1,9 +1,9 @@
 # Change Log
 
-All notable changes to the "ai-spec-generator" extension will be documented in this file.
+## 1.0.2 ~ 1.0.4
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+- Improve some settings.(license, readme, changelog ets...)
 
-## [Unreleased]
+## 1.0.0
 
 - Initial release

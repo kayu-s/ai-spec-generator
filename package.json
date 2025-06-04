@@ -2,7 +2,7 @@
   "name": "ai-spec-generator",
   "displayName": "AI Spec Generator",
   "description": "Generate specifications of your code using AI",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "publisher": "yuji",
   "icon": "resources/ext-icon.png",
   "keywords": [
@@ -24,6 +24,10 @@
   "categories": [
     "Other"
   ],
+  "galleryBanner": {
+    "color": "#FEFAEB",
+    "theme": "light"
+  },
   "license": "SEE LICENSE IN LICENSE.md",
   "activationEvents": [],
   "homepage": "https://github.com/kayu-s",
