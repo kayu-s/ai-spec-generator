@@ -2,7 +2,7 @@
   "name": "ai-spec-generator",
   "displayName": "AI Spec Generator",
   "description": "Generate specifications of your code using AI",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "publisher": "yuji",
   "icon": "resources/ext-icon.png",
   "keywords": [
@@ -16,7 +16,7 @@
     "生成"
   ],
   "repository": {
-    "url": ""
+    "url": "https://github.com/kayu-s/ai-spec-generator"
   },
   "engines": {
     "vscode": "^1.99.3"
