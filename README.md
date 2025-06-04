@@ -24,7 +24,7 @@ Click the extension icon to open the input area.
 Once all settings are configured, you can generate specifications by:
 
 - Running the `generateSpecifications` command, or
-- Clicking the "Generate" button in the sidebar
+- Clicking the "generate specifications" button in the sidebar
 
 Then, the specification document will be generated like this.
 <img src="./doc-images/generated-doc.png" width="600px" />
@@ -37,7 +37,8 @@ Then, the specification document will be generated like this.
 
 AI を使ってコードの仕様書を生成します。
 
-拡張機能の設定
+## 拡張機能の設定
+
 この拡張機能を使用する前に、以下の設定を行ってください：
 
 - targetExtensions(解析対象コードの拡張子)
@@ -46,17 +47,17 @@ AI を使ってコードの仕様書を生成します。
 
 <img src="./doc-images/settings.png" width="450px" />
 
-サイドバーから初期プロンプトも編集できます。
+サイドバーから初期プロンプトを編集できます。  
 拡張機能のアイコンをクリックすると、入力エリアが表示されます。
 
 <img src="./doc-images/prompt-setting.png" width="400px" />
 
 ## 使い方
 
-すべての設定が完了したら、以下のいずれかの方法で仕様書を生成できます：
+すべての設定が完了したら、以下のいずれかの方法で仕様書を生成できます
 
-- generateSpecifications コマンドを実行する
-- または、サイドバーの「Generate」ボタンをクリックする
+- コマンドパレットから `generateSpecifications` コマンドを実行する
+- または、サイドバーの「generate specifications」ボタンをクリックする
 
 すると、このように仕様書が生成されます。
 <img src="./doc-images/generated-doc.png" width="600px" />
