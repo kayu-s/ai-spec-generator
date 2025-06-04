@@ -1,10 +1,20 @@
 {
   "name": "ai-spec-generator",
-  "displayName": "ai-spec-generator",
-  "description": "generate code doc with ai",
-  "version": "1.0.1",
+  "displayName": "AI Spec Generator",
+  "description": "Generate specifications of your code using AI",
+  "version": "1.0.2",
   "publisher": "yuji",
-  "icon": "resources/icon.png",
+  "icon": "resources/ext-icon.png",
+  "keywords": [
+    "ai",
+    "document",
+    "copilot",
+    "chatgpt",
+    "llm",
+    "automate",
+    "仕様書",
+    "生成"
+  ],
   "repository": {
     "url": ""
   },
@@ -14,7 +24,9 @@
   "categories": [
     "Other"
   ],
+  "license": "SEE LICENSE IN LICENSE.md",
   "activationEvents": [],
+  "homepage": "https://github.com/kayu-s",
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -28,7 +40,7 @@
         {
           "id": "aiSpecGenerator",
           "title": "AI Spec Generator",
-          "icon": "resources/icon.png"
+          "icon": "resources/sidebar-icon.png"
         }
       ]
     },
